@@ -1,0 +1,7 @@
+track_id,track_name,artist_name,language,danceability,energy,valence,acousticness,tempo,loudness
+t001,Morning Run,Test Artist A,English,0.80,0.90,0.70,0.10,0.75,0.85
+t002,Night Drive,Test Artist A,English,0.60,0.50,0.40,0.30,0.55,0.60
+t003,Quiet Room,Test Artist C,English,0.20,0.10,0.20,0.95,0.25,0.20
+t004,"Rain, Again",Test Artist B,Korean,0.30,0.20,0.25,0.90,0.30,0.35
+t005,Summer Jump,Test Artist D,Korean,0.85,0.95,0.80,0.05,0.80,0.90
+t006,"The ""Big"" Song",Test Artist E,Hindi,0.55,0.60,0.50,0.40,0.50,0.65
