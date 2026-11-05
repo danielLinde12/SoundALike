@@ -5,13 +5,13 @@ The Python cleaning script writes this file and the C++ loader (`src/`) reads it
 
 ## Columns, in order
 
-| # | Column | Type | Notes |
-|---|--------|------|-------|
-| 1 | `track_id` | text | Spotify track ID. Unique per row; used to tell apart songs with the same name. |
-| 2 | `track_name` | text | Song title. |
-| 3 | `artist_name` | text | Artist (if there are several, keep them in one field). |
-| 4 | `language` | text | One of: `English`, `Hindi`, `Tamil`, `Telugu`, `Malayalam`, `Korean`. |
-| 5+ | features | number | One column per audio feature, every value scaled to **0–1**. |
+| #   | Column        | Type   | Notes                                                                          |
+| --- | ------------- | ------ | ------------------------------------------------------------------------------ |
+| 1   | `track_id`    | text   | Spotify track ID. Unique per row; used to tell apart songs with the same name. |
+| 2   | `track_name`  | text   | Song title.                                                                    |
+| 3   | `artist_name` | text   | Artist (if there are several, keep them in one field).                         |
+| 4   | `language`    | text   | One of: `English`, `Hindi`, `Tamil`, `Telugu`, `Malayalam`, `Korean`.          |
+| 5+  | features      | number | One column per audio feature, every value scaled to **0-1**.                   |
 
 The main features, in this order:
 
@@ -31,7 +31,7 @@ add more features (up to 10) for Experiment 2 without changing the C++ code.
   and a quote inside a field is written twice (`""`). Python's `csv` module does
   this by default, and the C++ loader must handle it.
 - There are no missing values: the cleaning script drops any row with a missing field.
-- All feature values are already scaled to 0–1 by the cleaning script. The C++ code
+- All feature values are already scaled to 0-1 by the cleaning script. The C++ code
   does no scaling.
 
 ## Example
