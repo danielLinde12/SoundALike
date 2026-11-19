@@ -32,11 +32,35 @@ Good visual: plot the 7 points on a grid and draw the split lines (a vertical li
 then horizontal lines at y = 6 on the left and y = 5 on the right). It shows the tree
 chopping the space into boxes.
 
-## 2. How the search skips work (TODO after step 3)
+## 2. How the search skips work
 
-Walk through one search on the 7-song tree: which nodes it visits, and which branch it
-skips because the split line is farther away than the best song found so far.
-This is the core idea and the most likely question. Show "visited 3 of 7" vs brute force's 7.
+Same 7-song tree, query **(6.5, 3)**. From `testNearestSmall` in `tests/test_kd_tree.cpp`.
+
+1. **(4,1)**, the root: distance² = 2.5² + 2² = 10.25. Best so far: (4,1).
+   The query's x (6.5) is bigger than 4, so go **right** first.
+2. **(7,5)**: distance² = 0.5² + 2² = 4.25. Better, new best.
+   The query's y (3) is smaller than 5, so go **left** first.
+3. **(6,2)**: distance² = 0.5² + 1² = 1.25. New best.
+4. Back at (7,5): could (5,8) be closer? It's on the other side of the line y = 5,
+   which is 2 away, so it's at least 2² = 4 away. 4 > 1.25, so **skip it**.
+5. Back at the root: could the left side be closer? Everything there is past the line
+   x = 4, which is 2.5 away, so at least 2.5² = 6.25 away. 6.25 > 1.25, so **skip all 3 songs**.
+
+**Answer: (6,2), after checking only 3 of 7 songs.** Brute force always checks all 7.
+
+The key sentence: *"If the split line is already farther than our best song, nothing on
+the other side can be closer, so we skip that whole branch."*
+
+### Early numbers (from the k = 1 tests, 5,000 random songs, 1,000 searches)
+
+| Features | Distances computed per search (avg) | Brute force |
+| --- | --- | --- |
+| 2 | 18 | 5,000 |
+| 6 | 214 | 5,000 |
+| 10 | 2,352 | 5,000 |
+
+This already shows both stories: a huge win with few features, and the advantage fading
+as features grow. The real plots come from the benchmarks.
 
 ## 3. Live demo flow (TODO: interface)
 
@@ -62,6 +86,11 @@ This backs up our problem statement: exact answers, fast, on one laptop.
 
 We deliberately broke the build (picked the first song instead of the median) and
 **14 tests failed**. Tests that can't fail prove nothing; ours catch real mistakes.
+
+We did the same to the search: swapping which side is searched first broke 5 tests, and
+turning off skipping broke the "only 3 of 7" test. Changing `<=` to `<` in the skip test
+at first broke **nothing**, which showed a gap: no test had a tie exactly on a split line.
+We added one (`testTieAcrossSplit`), and now that change fails too.
 
 ## 7. Stories about mistakes we caught
 

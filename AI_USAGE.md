@@ -9,6 +9,7 @@ This feeds the "AI usage" section of REPORT.md.
 | 2026-11-05 | Daniel | Claude Code | Wrote the CSV loader (`src/csv_loader.*`) and its tests. | Its first version had a bug: the 0–1 range check (`value < 0 \|\| value > 1`) let `"nan"` through, because comparisons with NaN are always false. Caught in review and changed to `!(value >= 0 && value <= 1)`. |
 | 2026-11-05 | Daniel | Claude Code | Wrote brute-force k-nearest search (`src/brute_force.*`) and hand-checkable tests. | Ties are broken by smaller index so brute force and the k-d tree have one exact answer to compare. _To review: confirm we want this rule._ |
 | 2026-11-08 | Kevin | Claude (chat) | Wrote the data cleaning script (data/clean_data.py): keeps the columns from data/README.md, drops missing/duplicate/bad rows, keeps the six languages, and min-max scales the six features to 0–1.|Its first draft guessed the output format before reading data/README.md (wrong column names, no language column), so it was rewritten to match the real spec. It was only tested on a small made-up CSV, not the real Kaggle file, and the raw column names are guesses (see ALIASES in the script). To do: run it on the real dataset and fix ALIASES if needed. Decide whether to clip loudness outliers before scaling, since one very quiet track can squash the rest toward 1.|
+| 2026-11-18 | Daniel | Claude (chat) | Wrote the k-d tree build (`src/kd_tree.cpp`), nearest-song search, and `tests/test_kd_tree.cpp`. | Checked the tests by breaking the code on purpose (wrong median, swapped search sides, no skipping, `<` instead of `<=`). The `<` change was not caught at first; see mistake #6. |
 
 ## Mistake tally
 
@@ -25,5 +26,6 @@ should have checked) · Missing case (didn't handle an input) · Design (worked,
 | 3 | 2026-11-08 | `data/clean_data.py` | Wrong assumption | Raw Kaggle column names are guesses (`ALIASES`), never checked against the real file. | Kevin | _Open: run on the real dataset._ |
 | 4 | 2026-11-12 | `data/clean_data.py` | Missing case | Language filter is case-sensitive, so a song labeled `english` is silently dropped. | Review test with a fake raw file | _Open: add `.str.title()` before the filter._ |
 | 5 | 2026-11-12 | `data/clean_data.py` | Design | Plain min-max scaling lets one outlier squash a feature: a single -40 dB song pushed every other song's loudness into 0.79-1.0. | Kevin flagged it; review test confirmed it | _Open: decide on clipping to the 1st-99th percentile._ |
+| 6 | 2026-11-18 | `tests/test_kd_tree.cpp` | Missing case | The first search tests had no tie exactly on a split line, so changing the skip test from `<=` to `<` (which breaks brute-force tie matching) still passed. Also drew the tree with `\` at line ends, which C++ treats as continuing the comment. | Breaking the code on purpose (mutation testing) | Added `testTieAcrossSplit`; moved the drawing into a `/* */` comment. |
 
-**Running totals** (update when adding rows): 5 mistakes. Bug 1 · Wrong assumption 2 · Missing case 1 · Design 1. Still open: 3.
+**Running totals** (update when adding rows): 6 mistakes. Bug 1 · Wrong assumption 2 · Missing case 2 · Design 1. Still open: 3.
