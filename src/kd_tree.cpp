@@ -139,3 +139,69 @@ bool KDTree::isValidNode(const Node* node, std::vector<double>& lo,
 
     return leftOk && rightOk;
 }
+
+// ---------------------------------------------------------------------------
+// Searching
+// ---------------------------------------------------------------------------
+
+std::vector<Neighbor> KDTree::kNearest(const std::vector<double>& query, size_t k,
+                                       size_t* distanceCount) const {
+    if (root_ && query.size() != dimensions_) {
+        throw std::invalid_argument("query has a different number of features than the songs");
+    }
+
+    // `best` holds the closest songs found so far, sorted closest first,
+    // never more than k of them. best.back() is the worst one we're keeping.
+    std::vector<Neighbor> best;
+    size_t count = 0;
+    if (k > 0) {
+        search(root_.get(), query, k, best, count);
+    }
+    if (distanceCount != nullptr) {
+        *distanceCount = count;
+    }
+    return best;
+}
+
+void KDTree::search(const Node* node, const std::vector<double>& query, size_t k,
+                    std::vector<Neighbor>& best, size_t& distanceCount) const {
+    if (node == nullptr) {
+        return;
+    }
+
+    // 1. Check this node's song.
+    Neighbor candidate{node->index, squaredDistance(songs_[node->index].features, query)};
+    distanceCount++;
+
+    // Keep it if we have fewer than k, or if it beats the worst one we're keeping.
+    // isCloser is the same rule brute force uses (ties: smaller index wins).
+    if (best.size() < k || isCloser(candidate, best.back())) {
+        // Insert it in sorted position, then drop the worst if we now have k + 1.
+        auto spot = std::lower_bound(best.begin(), best.end(), candidate, isCloser);
+        best.insert(spot, candidate);
+        if (best.size() > k) {
+            best.pop_back();
+        }
+    }
+
+    // 2. Go down the side of the split the query is on first. That's where
+    //    the closest songs probably are, so `best` gets good quickly.
+    double diff = query[node->axis] - songs_[node->index].features[node->axis];
+    const Node* nearSide = diff < 0 ? node->left.get() : node->right.get();
+    const Node* farSide = diff < 0 ? node->right.get() : node->left.get();
+
+    search(nearSide, query, k, best, distanceCount);
+
+    // 3. Only search the other side if it could still hold a better song.
+    //    Every song over there is at least |diff| away on this one feature,
+    //    so its full squared distance is at least diff * diff. If that's
+    //    already farther than the worst song we're keeping, nothing over
+    //    there can make the list: skip the whole subtree. This skip is the
+    //    entire speedup over brute force.
+    //
+    //    We use <= (not <) so a song at exactly the same distance with a
+    //    smaller index still gets a chance, matching brute force's tie rule.
+    if (best.size() < k || diff * diff <= best.back().squaredDistance) {
+        search(farSide, query, k, best, distanceCount);
+    }
+}

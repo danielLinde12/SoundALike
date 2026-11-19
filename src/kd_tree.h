@@ -73,7 +73,8 @@ private:
     std::unique_ptr<Node> build(std::vector<size_t>& indices, size_t begin,
                                 size_t end, size_t depth);
 
-    // Recursive search used by kNearest (written in step 3).
+    // Recursive search used by kNearest. Updates `best` (closest first, at
+    // most k songs) and counts every distance it computes.
     void search(const Node* node, const std::vector<double>& query, size_t k,
                 std::vector<Neighbor>& best, size_t& distanceCount) const;
 
