@@ -15,8 +15,8 @@
 // How it works, in short:
 //
 // Each node holds one song and splits the remaining songs on one feature
-// (its "axis"). Songs with a smaller value on that feature go left, larger go
-// right. The axis cycles with depth: depth 0 splits on feature 0
+// (its "axis"). Songs with a smaller or equal value on that feature go left,
+// larger or equal go right (songs tied with the split can land on either side). The axis cycles with depth: depth 0 splits on feature 0
 // (danceability), depth 1 on feature 1 (energy), and so on, wrapping around.
 //
 // Building: at each node we pick the MEDIAN song on that node's axis, so half
@@ -50,14 +50,19 @@ public:
     size_t size() const;    // number of songs in the tree
     size_t height() const;  // longest root-to-leaf path in nodes (0 if empty); used in tests
 
+    // For tests: checks the k-d tree rule at every node (left side <= split,
+    // right side >= split, on that node's axis) and that every song appears
+    // exactly once.
+    bool isValid() const;
+
 private:
     struct Node {
         size_t index;  // position of this node's song in songs_
         size_t axis;   // which feature this node splits on
         // unique_ptr deletes the child automatically when the node is
         // deleted, so the whole tree is freed with no manual delete calls.
-        std::unique_ptr<Node> left;   // songs with a smaller value on `axis`
-        std::unique_ptr<Node> right;  // songs with a larger (or equal) value on `axis`
+        std::unique_ptr<Node> left;   // songs with a value <= this song's, on `axis`
+        std::unique_ptr<Node> right;  // songs with a value >= this song's, on `axis`
     };
 
     const std::vector<Song>& songs_;  // the songs the tree was built from
@@ -73,4 +78,9 @@ private:
                 std::vector<Neighbor>& best, size_t& distanceCount) const;
 
     static size_t heightOf(const Node* node);
+
+    // Helper for isValid. lo/hi are the allowed range for each feature at
+    // this node, narrowed by every split on the path from the root.
+    bool isValidNode(const Node* node, std::vector<double>& lo,
+                     std::vector<double>& hi, std::vector<bool>& seen) const;
 };
