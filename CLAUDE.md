@@ -47,6 +47,8 @@ Repo: github.com/danielLinde12/SoundALike
   wrong, and what we fixed or rejected. Log notable AI help in `AI_USAGE.md` as we go.
   When review or a test finds a mistake in AI-written code, add a row to the **Mistake tally**
   in `AI_USAGE.md` and update its running totals.
+- When something would make a good showcase demo, picture, or Q&A answer, add it to
+  `docs/SHOWCASE_NOTES.md`.
 
 ## Repository layout
 
